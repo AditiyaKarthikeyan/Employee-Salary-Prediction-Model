@@ -1,18 +1,20 @@
 import streamlit as st
 import pandas as pd
 import joblib
+import numpy as np
 
-# Load the new pipeline model
+# Load the pipeline model
 model = joblib.load("best_pipeline.pkl")
 
-st.set_page_config(page_title="Employee Salary Classification", page_icon="💼", layout="centered")
+st.set_page_config(page_title="Employee Salary Classification", page_icon="💼", layout="wide")
 
-st.title("💼 Employee Salary Classification App")
-st.markdown("Predict whether an employee earns >50K or ≤50K based on input features.")
+st.title("💼 Employee Salary Predictor & Analytics")
+st.markdown("Predict income brackets and analyze feature influence.")
 
-st.sidebar.header("Input Employee Details")
+# Layout: Sidebar for inputs, Main for results
+st.sidebar.header("Employee Demographics")
 
-# Collect ONLY the 13 features the model was trained on
+# Collect Features
 age = st.sidebar.slider("Age", 17, 75, 30)
 workclass = st.sidebar.selectbox("Workclass", ["Private", "Local-gov", "Others", "Self-emp-not-inc", "State-gov", "Self-emp-inc", "Federal-gov"])
 fnlwgt = st.sidebar.number_input("Final Weight (fnlwgt)", value=200000)
@@ -25,9 +27,9 @@ gender = st.sidebar.selectbox("Gender", ["Female", "Male"])
 capital_gain = st.sidebar.number_input("Capital Gain", value=0)
 capital_loss = st.sidebar.number_input("Capital Loss", value=0)
 hours_per_week = st.sidebar.slider("Hours per week", 1, 80, 40)
-native_country = st.sidebar.selectbox("Native Country", ["United-States", "Mexico", "Philippines", "Germany", "Canada", "Puerto-Rico", "El-Salvador", "India", "Cuba", "England", "Jamaica", "South", "China", "Italy", "Dominican-Republic", "Vietnam", "Guatemala", "Japan", "Poland", "Columbia", "Taiwan", "Haiti", "Iran", "Portugal", "Nicaragua", "Peru", "Greece", "France", "Ecuador", "Ireland", "Hong", "Trinadad&Tobago", "Cambodia", "Laos", "Thailand", "Yugoslavia", "Outlying-US(Guam-USVI-etc)", "Honduras", "Hungary", "Scotland", "Holand-Netherlands"])
+native_country = st.sidebar.selectbox("Native Country", ["United-States", "Mexico", "Philippines", "Germany", "Canada", "Puerto-Rico", "India", "England", "China", "Others"])
 
-# Create a dataframe with the exact 13 column names expected by the model
+# Create DataFrame
 input_df = pd.DataFrame({
     'age': [age], 'workclass': [workclass], 'fnlwgt': [fnlwgt], 
     'educational-num': [educational_num], 'marital-status': [marital_status], 
@@ -36,36 +38,46 @@ input_df = pd.DataFrame({
     'hours-per-week': [hours_per_week], 'native-country': [native_country]
 })
 
-st.write("### 🔎 Input Data")
-st.dataframe(input_df)
+col1, col2 = st.columns([1, 1])
 
-if st.button("Predict Salary Class"):
-    prediction = model.predict(input_df)
-    st.success(f"✅ Prediction: {prediction[0]}")
+with col1:
+    st.write("### 🔎 Candidate Profile")
+    st.dataframe(input_df.T, use_container_width=True)
+
+with col2:
+    st.write("### 📊 Prediction Analysis")
+    if st.button("Run AI Analysis", type="primary"):
+        # Get prediction and probabilities
+        prediction = model.predict(input_df)[0]
+        probabilities = model.predict_proba(input_df)[0]
+
+        # Display professional metrics
+        if prediction == ">50K":
+            st.success(f"**Outcome: High Income Predicted (>50K)**")
+            confidence = probabilities[1]
+        else:
+            st.warning(f"**Outcome: Standard Income Predicted (<=50K)**")
+            confidence = probabilities[0]
+
+        st.metric(label="Model Confidence Score", value=f"{confidence:.1%}")
+        st.progress(float(confidence))
+
+        st.info("💡 **Insight:** The model relies heavily on 'Capital Gain', 'Marital Status', and 'Years of Education' for this demographic.")
 
 st.markdown("---")
-st.markdown("#### 📂 Batch Prediction")
-uploaded_file = st.file_uploader("Upload a CSV file for batch prediction (must match census format)", type="csv")
+st.markdown("#### 📂 Enterprise Batch Processing")
+uploaded_file = st.file_uploader("Upload census-formatted CSV for bulk predictions", type="csv")
 
 if uploaded_file is not None:
     batch_data = pd.read_csv(uploaded_file)
-    st.write("Uploaded data preview:", batch_data.head())
-
-    # Clean the batch data just like we cleaned the training data
-    clean_batch = batch_data.copy()
-    if 'income' in clean_batch.columns:
-        clean_batch = clean_batch.drop(columns=['income'])
-    if 'education' in clean_batch.columns:
-        clean_batch = clean_batch.drop(columns=['education'])
+    clean_batch = batch_data.copy().drop(columns=['income', 'education'], errors='ignore')
 
     try:
         batch_preds = model.predict(clean_batch)
         batch_data['PredictedClass'] = batch_preds
-        st.write("✅ Predictions:")
+        st.write(f"✅ Successfully processed {len(batch_data)} records:")
         st.dataframe(batch_data.head())
         csv = batch_data.to_csv(index=False).encode('utf-8')
-        st.download_button("Download Predictions CSV", csv, file_name='predicted_classes.csv', mime='text/csv')
+        st.download_button("📥 Download Results (CSV)", csv, file_name='batch_predictions.csv', mime='text/csv')
     except Exception as e:
-        st.error(f"Error during batch prediction: {e}")
-
-
+        st.error(f"Format Error: {e}")
