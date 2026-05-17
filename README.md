@@ -73,4 +73,4 @@ To interact with the deployment UI locally, run the Streamlit server:
 
 ---
 
-![Try the Live Web Demo Here!](https://employee-salary-prediction-model-bjlkrwep8otetav8higymv.streamlit.app)
+[Try the Live Web Demo Here!](https://employee-salary-prediction-model-bjlkrwep8otetav8higymv.streamlit.app)
