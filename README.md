@@ -29,6 +29,9 @@ Multiple classification algorithms were trained and evaluated against a 20% test
 * **Random Forest:** 85.02% 
 * **Gradient Boosting:** Achieved the highest accuracy at 85.71% and was selected as the final production model.
 
+### Observation
+* Identified class imbalance in target variable. Future iterations could utilize SMOTE or class weighting to improve recall for the minority class.
+
 ---
 
 ## Deployment Interface
