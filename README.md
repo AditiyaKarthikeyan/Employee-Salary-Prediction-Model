@@ -37,3 +37,33 @@ The finalized Gradient Boosting model is serialized using `joblib` and deployed 
 * **Batch Processing:** The application supports CSV file uploads, allowing organizations to run predictions on entire datasets simultaneously and download the generated results.
 
 ---
+
+## Getting Started
+
+To explore the EDA process or run the Streamlit application locally:
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/AditiyaKarthikeyan/Employee-Salary-Prediction-Model.git
+   cd Employee-Salary-Prediction-Model
+   ```
+   
+2. **Install dependencies:**
+    Ensure you have Python installed, then run:
+
+   ```bash
+   pip install pandas numpy scikit-learn matplotlib streamlit joblib
+   ```
+
+3. **Run the Exploratory Notebook:**
+
+   ```bash
+   jupyter notebook notebooks/employee_salary_prediction.ipynb
+   ```
+
+4. **Launch the Web Application:**
+To interact with the deployment UI locally, run the Streamlit server:
+
+   ```bash
+   streamlit run app.py
+   ```
